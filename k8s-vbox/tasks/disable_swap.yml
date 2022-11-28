@@ -1,0 +1,19 @@
+---
+# Disable SWAP
+
+- name: Check swap status
+  ansible.builtin.shell: free -m | awk 'FNR == 3 {print $2}'
+  register: swap_status
+  changed_when: "'0' not in swap_status.stdout_lines"
+
+- name: Disable SWAP
+  ansible.builtin.shell: |
+    swapoff -a
+  when: "'0' not in swap_status.stdout_lines"
+
+- name: Disable SWAP in fstab
+  ansible.builtin.replace:
+    path: /etc/fstab
+    regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
+    replace: '# \1'
+  when: "'0' not in swap_status.stdout_lines"

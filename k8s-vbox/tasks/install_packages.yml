@@ -1,0 +1,30 @@
+---
+# Install packages, setup containerd
+
+- name: Install a list of packages
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600
+    pkg:
+    - containerd.io
+    - kubelet
+    - kubeadm
+    - kubectl
+  when: ( ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '22' )
+
+# Prevent k8s related apps from being updated
+
+- name: Prevent kubelet from being upgraded
+  ansible.builtin.dpkg_selections:
+    name: kubelet
+    selection: hold
+
+- name: Prevent kubeadm from being upgraded
+  ansible.builtin.dpkg_selections:
+    name: kubeadm
+    selection: hold
+
+- name: Prevent kubectl from being upgraded
+  ansible.builtin.dpkg_selections:
+    name: kubectl
+    selection: hold

@@ -1,0 +1,7 @@
+---
+# handlers file for k8s-vbox
+
+- name: Restart containerd
+  ansible.builtin.service:
+    name: containerd
+    state: restarted

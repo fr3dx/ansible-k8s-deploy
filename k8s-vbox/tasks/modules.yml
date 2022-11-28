@@ -1,0 +1,12 @@
+---
+# Add modules
+
+- name: Add the overlay module
+  community.general.modprobe:
+    name: overlay
+    state: present
+
+- name: Add the overlay module
+  community.general.modprobe:
+    name: br_netfilter
+    state: present

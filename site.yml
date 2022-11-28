@@ -1,0 +1,11 @@
+---
+- name: Install k8s cluster
+  hosts: all
+  become: yes
+  become_user: root
+  gather_facts: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
+  roles:
+  - k8s-vbox

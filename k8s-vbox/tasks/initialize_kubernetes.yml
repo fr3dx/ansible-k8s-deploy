@@ -1,0 +1,71 @@
+---
+# Initialize k8s cluster and join nodes
+
+- name: Initialize kubernetes on master node
+  ansible.builtin.command: kubeadm init --control-plane-endpoint=k8smaster
+  register: init_kubernetes
+  when: "'k8smaster' in inventory_hostname"
+  ignore_errors: yes
+
+- name: Check join-command.sh file is exists
+  ansible.builtin.stat:
+    path: "/tmp/join-command.sh"
+  register: join_cmd_file
+
+- name: Generate join command
+  ansible.builtin.command: kubeadm token create --print-join-command
+  register: join_command
+  when: "'k8smaster' in inventory_hostname and join_cmd_file.stat.exists == False"
+
+- name: Copy kubernetes join command
+  ansible.builtin.copy:
+    content: "{{ join_command.stdout_lines[0] }}"
+    dest: /tmp/join-command.sh
+  when: "'k8smaster' in inventory_hostname and join_cmd_file.stat.exists == False"
+
+- name: Fetch the file from the k8smaster to k8sworker01 and k8sworker02
+  run_once: yes
+  ansible.builtin.fetch: src=/tmp/join-command.sh dest=buffer/ flat=yes
+  when: "'k8smaster' in inventory_hostname"
+
+- name: Copy the file from k8smaster to k8sworker01 and k8sworker02
+  ansible.builtin.copy: src=buffer/join-command.sh dest=/tmp/
+  when: "'k8smaster' not in inventory_hostname"
+
+- name: Create .kube dir if it does not exist
+  ansible.builtin.file:
+    path: /home/fr3dx/.kube
+    state: directory
+    mode: '0755'
+  when: "'k8smaster' in inventory_hostname"
+
+- name: Copy k8s admin.conf file with owner and permissions
+  ansible.builtin.copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /home/fr3dx/.kube/config
+    owner: fr3dx
+    group: fr3dx
+    mode: '0644'
+    remote_src: yes
+  when: "'k8smaster' in inventory_hostname"
+
+- name: Check k8s cluster status
+  ansible.builtin.shell: kubectl get no
+  register: kube_node_status
+  when: "'k8smaster' in inventory_hostname"
+  ignore_errors: yes
+#  changed_when: "'kworker01' or 'kworker02' not in kube_node_status.stdout"
+
+- name: x
+  debug:
+    msg: "{{ kube_node_status }}"
+#  when: "'k8smaster' in inventory_hostname"
+
+- name: Join the node(s) to cluster
+  ansible.builtin.command: sh /tmp/join-command.sh
+  when: "'k8smaster' not in inventory_hostname"
+  ignore_errors: yes
+
+- name: Get calico for k8s
+  ansible.builtin.command: curl https://projectcalico.docs.tigera.io/manifests/calico.yaml -O
+  when: "'k8smaster' in inventory_hostname"

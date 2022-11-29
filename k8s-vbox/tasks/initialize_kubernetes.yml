@@ -50,22 +50,13 @@
   when: "'k8smaster' in inventory_hostname"
 
 - name: Check k8s cluster status
-  ansible.builtin.shell: kubectl get no
+  ansible.builtin.command: kubectl get no --kubeconfig=/home/fr3dx/.kube/config
   register: kube_node_status
   when: "'k8smaster' in inventory_hostname"
   ignore_errors: yes
-#  changed_when: "'kworker01' or 'kworker02' not in kube_node_status.stdout"
-
-- name: x
-  debug:
-    msg: "{{ kube_node_status }}"
-#  when: "'k8smaster' in inventory_hostname"
+  changed_when: "'kworker01' or 'kworker02' not in kube_node_status.stdout_lines"
 
 - name: Join the node(s) to cluster
   ansible.builtin.command: sh /tmp/join-command.sh
   when: "'k8smaster' not in inventory_hostname"
   ignore_errors: yes
-
-- name: Get calico for k8s
-  ansible.builtin.command: curl https://projectcalico.docs.tigera.io/manifests/calico.yaml -O
-  when: "'k8smaster' in inventory_hostname"

@@ -1,0 +1,35 @@
+---
+# Install Calico CNI on k8s
+
+- name: Get calico.yaml for k8s
+  ansible.builtin.get_url:
+    url: https://projectcalico.docs.tigera.io/manifests/calico.yaml
+    dest: /home/fr3dx/calico.yaml
+    mode: '0644'
+  register: calico_yaml_file
+  when: "'k8smaster' in inventory_hostname"
+
+- name: Check calico.yaml file is exists
+  ansible.builtin.stat:
+    path: "/home/fr3dx/calico.yaml"
+  register: calico_yaml_file
+
+- name: Apply calico on k8s
+  ansible.builtin.command: kubectl --kubeconfig=/home/fr3dx/.kube/config apply -f /home/fr3dx/calico.yaml
+  when: "'k8smaster' in inventory_hostname and calico_yaml_file.stat.exists == True"
+
+- name: Wait for pods from group k8s-app=calico-nodes to come up
+  ansible.builtin.command: kubectl --kubeconfig=/home/fr3dx/.kube/config get po --selector=k8s-app=calico-node -n kube-system -o json
+  register: calico_node_info
+  until: calico_node_info.stdout | from_json | community.general.json_query('items[*].status.phase')|unique == ["Running"]
+  retries: 50
+  delay: 10
+  when: "'k8smaster' in inventory_hostname and calico_yaml_file.stat.exists == True"
+
+- name: Wait for pods from group k8s-app=calico-controller to come up
+  ansible.builtin.command: kubectl --kubeconfig=/home/fr3dx/.kube/config get po --selector=k8s-app=calico-kube-controllers -n kube-system -o json
+  register: calico_controller_info
+  until: calico_controller_info.stdout | from_json | community.general.json_query('items[*].status.phase')|unique == ["Running"]
+  retries: 30
+  delay: 10
+  when: "'k8smaster' in inventory_hostname and calico_yaml_file.stat.exists == True"

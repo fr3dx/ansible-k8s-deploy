@@ -4,11 +4,7 @@ all:
       hosts:
         k8smaster:
           ansible_host: 192.168.99.50
-          ansible_python_interpreter: /usr/bin/python3
         k8sworker01:
           ansible_host: 10.0.2.51
-          ansible_python_interpreter: /usr/bin/python3
         k8sworker02:
           ansible_host: 10.0.2.52
-          ansible_python_interpreter: /usr/bin/python3
-    ungrouped: {}

@@ -1,6 +1,13 @@
 ---
 # Install Calico CNI on k8s
 
+- name: Check k8s cluster status
+  ansible.builtin.command: kubectl get no --kubeconfig=/home/fr3dx/.kube/config
+  register: kube_node_ready_status
+  when: "'k8smaster' in inventory_hostname"
+  ignore_errors: yes
+  changed_when: "'kworker01' not in kube_node_status.stdout or 'kworker02' not in kube_node_status.stdout"
+
 - name: Get calico.yaml for k8s
   ansible.builtin.get_url:
     url: https://projectcalico.docs.tigera.io/manifests/calico.yaml
@@ -17,6 +24,7 @@
 - name: Apply calico on k8s
   ansible.builtin.command: kubectl --kubeconfig=/home/fr3dx/.kube/config apply -f /home/fr3dx/calico.yaml
   when: "'k8smaster' in inventory_hostname and calico_yaml_file.stat.exists == True"
+  changed_when: "'Ready' not in kube_node_ready_status.stdout"
 
 - name: Wait for pods from group k8s-app=calico-nodes to come up
   ansible.builtin.command: kubectl --kubeconfig=/home/fr3dx/.kube/config get po --selector=k8s-app=calico-node -n kube-system -o json
@@ -25,6 +33,7 @@
   retries: 50
   delay: 10
   when: "'k8smaster' in inventory_hostname and calico_yaml_file.stat.exists == True"
+  changed_when: "'Ready' not in kube_node_ready_status.stdout"
 
 - name: Wait for pods from group k8s-app=calico-controller to come up
   ansible.builtin.command: kubectl --kubeconfig=/home/fr3dx/.kube/config get po --selector=k8s-app=calico-kube-controllers -n kube-system -o json
@@ -33,3 +42,4 @@
   retries: 30
   delay: 10
   when: "'k8smaster' in inventory_hostname and calico_yaml_file.stat.exists == True"
+  changed_when: "'Ready' not in kube_node_ready_status.stdout"

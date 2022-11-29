@@ -3,19 +3,19 @@
 
 - name: Check containerd.conf is exists
   ansible.builtin.stat:
-    path: "/etc/modules-load.d/containerd.conf"
+    path: "{{ modules_path }}/containerd.conf"
   register: containerd_conf
 
 - name: Create containerd.conf and set its permission
   ansible.builtin.file:
-    path: "/etc/modules-load.d/containerd.conf"
+    path: "{{ modules_path }}/containerd.conf"
     state: touch
     mode: 0644
   when: containerd_conf.stat.exists == False
 
 - name: Set containerd.conf
   ansible.builtin.blockinfile:
-    path: "/etc/modules-load.d/containerd.conf"
+    path: "{{ modules_path }}/containerd.conf"
     block: |
       overlay
       br_netfilter

@@ -1,3 +1,5 @@
 ---
 # vars file for k8s-vbox
 home_path: /home/fr3dx
+modules_path: /etc/modules-load.d
+join_command_sh_path: /tmp

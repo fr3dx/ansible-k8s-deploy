@@ -9,32 +9,34 @@
 
 - name: Check join-command.sh file is exists
   ansible.builtin.stat:
-    path: "/tmp/join-command.sh"
+    path: "{{ join_command_sh_path }}/join-command.sh"
   register: join_cmd_file
 
 - name: Generate join command
   ansible.builtin.command: kubeadm token create --print-join-command
   register: join_command
-  when: "'k8smaster' in inventory_hostname and join_cmd_file.stat.exists == False"
+  when: "'k8smaster' in inventory_hostname and 
+        join_cmd_file.stat.exists == False"
 
 - name: Copy kubernetes join command
   ansible.builtin.copy:
     content: "{{ join_command.stdout_lines[0] }}"
-    dest: /tmp/join-command.sh
-  when: "'k8smaster' in inventory_hostname and join_cmd_file.stat.exists == False"
+    dest: "{{ join_command_sh_path }}/join-command.sh"
+  when: "'k8smaster' in inventory_hostname and 
+        join_cmd_file.stat.exists == False"
 
 - name: Fetch the file from the k8smaster to k8sworker01 and k8sworker02
   run_once: yes
-  ansible.builtin.fetch: src=/tmp/join-command.sh dest=buffer/ flat=yes
+  ansible.builtin.fetch: src={{ join_command_sh_path }}/join-command.sh dest=buffer/ flat=yes
   when: "'k8smaster' in inventory_hostname"
 
 - name: Copy the file from k8smaster to k8sworker01 and k8sworker02
-  ansible.builtin.copy: src=buffer/join-command.sh dest=/tmp/
+  ansible.builtin.copy: src=buffer/join-command.sh dest={{ join_command_sh_path }}/
   when: "'k8smaster' not in inventory_hostname"
 
 - name: Create .kube dir if it does not exist
   ansible.builtin.file:
-    path: /home/fr3dx/.kube
+    path: "{{ home_path }}/.kube"
     state: directory
     mode: '0755'
   when: "'k8smaster' in inventory_hostname"
@@ -42,7 +44,7 @@
 - name: Copy k8s admin.conf file with owner and permissions
   ansible.builtin.copy:
     src: /etc/kubernetes/admin.conf
-    dest: /home/fr3dx/.kube/config
+    dest: "{{ home_path }}/.kube/config"
     owner: fr3dx
     group: fr3dx
     mode: '0644'
@@ -50,13 +52,14 @@
   when: "'k8smaster' in inventory_hostname"
 
 - name: Check k8s cluster status
-  ansible.builtin.command: kubectl get no --kubeconfig=/home/fr3dx/.kube/config
+  ansible.builtin.command: kubectl get no --kubeconfig={{ home_path }}/.kube/config
   register: kube_node_status
   when: "'k8smaster' in inventory_hostname"
   ignore_errors: yes
-  changed_when: "'kworker01' not in kube_node_status.stdout or 'kworker02' not in kube_node_status.stdout"
+  changed_when: "'kworker01' not in kube_node_status.stdout or 
+                'kworker02' not in kube_node_status.stdout"
 
 - name: Join the node(s) to cluster
-  ansible.builtin.command: sh /tmp/join-command.sh
+  ansible.builtin.command: sh {{ join_command_sh_path }}/join-command.sh
   when: "'k8smaster' not in inventory_hostname"
   ignore_errors: yes

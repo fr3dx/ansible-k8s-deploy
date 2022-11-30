@@ -2,12 +2,12 @@
 - name: Check /etc/containerd/config.toml is exists
   ansible.builtin.shell: cat /etc/containerd/config.toml | grep SystemdCgroup 
   register: containerd_toml_conf
-  changed_when: "'            SystemdCgroup = true' not in containerd_toml_conf.stdout"
+  changed_when: "'SystemdCgroup = true' not in containerd_toml_conf.stdout"
   ignore_errors: yes
 
 - name: Set up config for containerd
   ansible.builtin.shell: containerd config default | tee /etc/containerd/config.toml >/dev/null 2>&1
-  when: "'            SystemdCgroup = true' not in containerd_toml_conf.stdout"
+  when: "'SystemdCgroup = true' not in containerd_toml_conf.stdout"
 
 - name: Replace SystemdCgroup value to true and restart containerd
   ansible.builtin.lineinfile:
@@ -25,4 +25,4 @@
   ansible.builtin.service:
     name: containerd
     state: restarted
-  when: "'            SystemdCgroup = true' not in containerd_toml_conf.stdout"
+  when: "'SystemdCgroup = true' not in containerd_toml_conf.stdout"

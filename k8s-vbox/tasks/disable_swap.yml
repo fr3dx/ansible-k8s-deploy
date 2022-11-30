@@ -8,6 +8,6 @@
 - name: Disable SWAP in fstab
   ansible.builtin.replace:
     path: /etc/fstab
-    regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
+    regexp: '^(\s?\/swap+.+)$'
     replace: '# \1'
   when: "ansible_memory_mb.swap.total > 0"

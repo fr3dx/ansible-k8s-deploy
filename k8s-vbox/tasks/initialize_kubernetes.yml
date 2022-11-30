@@ -56,8 +56,8 @@
   register: kube_node_status
   when: "'k8smaster' in inventory_hostname"
   ignore_errors: yes
-  changed_when: "'kworker01' not in kube_node_status.stdout or 
-                'kworker02' not in kube_node_status.stdout"
+  changed_when: "'k8sworker01' not in kube_node_status.stdout or 
+                'k8sworker02' not in kube_node_status.stdout"
 
 - name: Join the node(s) to cluster
   ansible.builtin.command: sh {{ join_command_sh_path }}/join-command.sh

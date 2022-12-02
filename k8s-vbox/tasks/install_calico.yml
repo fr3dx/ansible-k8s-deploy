@@ -6,8 +6,8 @@
   register: kube_node_ready_status
   when: "'k8smaster' in inventory_hostname"
   ignore_errors: yes
-  changed_when: "'k8sworker01' not in kube_node_status.stdout or 
-                'k8sworker02' not in kube_node_status.stdout"
+  changed_when: "'k8sworker01' not in kube_node_ready_status.stdout or 
+                'k8sworker02' not in kube_node_ready_status.stdout"
 
 - name: Get calico.yaml for k8s
   ansible.builtin.get_url:

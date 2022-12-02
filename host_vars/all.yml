@@ -1,0 +1,1 @@
+ansible_become_password: {{ kube_cluser_sudo_pass }}

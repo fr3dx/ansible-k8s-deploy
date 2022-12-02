@@ -8,21 +8,16 @@
 - name: Set up config for containerd
   ansible.builtin.shell: containerd config default | tee /etc/containerd/config.toml >/dev/null 2>&1
   when: "'SystemdCgroup = true' not in containerd_toml_conf.stdout"
+  ignore_errors: yes
 
 - name: Replace SystemdCgroup value to true and restart containerd
   ansible.builtin.lineinfile:
     path: /etc/containerd/config.toml
     regexp: '\s+SystemdCgroup'
     line: '            SystemdCgroup = true'
-#  notify:
-#  - Restart containerd
-#  when: "'            SystemdCgroup = true' not in containerd_toml_conf.stdout"
-
-#- name: Force all notified handlers to run at this point, not waiting for normal sync points
-#  ansible.builtin.meta: flush_handlers
-
-- name: Restart containerd
-  ansible.builtin.service:
-    name: containerd
-    state: restarted
+  notify:
+  - Restart containerd
   when: "'SystemdCgroup = true' not in containerd_toml_conf.stdout"
+
+- name: Force all notified handlers to run at this point, not waiting for normal sync points
+  ansible.builtin.meta: flush_handlers

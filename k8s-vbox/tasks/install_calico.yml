@@ -26,7 +26,7 @@
   ansible.builtin.command: kubectl --kubeconfig={{ home_path }}/.kube/config apply -f {{ home_path }}/calico.yaml
   when: "'k8smaster' in inventory_hostname and 
         calico_yaml_file.stat.exists == True"
-  changed_when: "'Ready' not in kube_node_ready_status.stdout"
+  changed_when: "'NotReady' in kube_node_ready_status.stdout"
 
 - name: Wait for pods from group k8s-app=calico-nodes to come up
   ansible.builtin.command: kubectl --kubeconfig={{ home_path }}/.kube/config get po --selector=k8s-app=calico-node -n kube-system -o json
@@ -36,7 +36,7 @@
   delay: 10
   when: "'k8smaster' in inventory_hostname and 
         calico_yaml_file.stat.exists == True"
-  changed_when: "'Ready' not in kube_node_ready_status.stdout"
+  changed_when: "'NotReady' in kube_node_ready_status.stdout"
 
 - name: Wait for pods from group k8s-app=calico-controller to come up
   ansible.builtin.command: kubectl --kubeconfig={{ home_path }}/.kube/config get po --selector=k8s-app=calico-kube-controllers -n kube-system -o json
@@ -46,4 +46,4 @@
   delay: 10
   when: "'k8smaster' in inventory_hostname and 
         calico_yaml_file.stat.exists == True"
-  changed_when: "'Ready' not in kube_node_ready_status.stdout"
+  changed_when: "'NotReady' in kube_node_ready_status.stdout"

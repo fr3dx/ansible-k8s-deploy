@@ -37,8 +37,6 @@
     - kubelet
     - kubeadm
     - kubectl
-  when: ansible_distribution == 'Ubuntu' and 
-        ansible_distribution_major_version == '22'
 
 # Prevent k8s related apps from being updated
 

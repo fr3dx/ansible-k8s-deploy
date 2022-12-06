@@ -1,0 +1,18 @@
+---
+# Validate system requirements
+
+# Ensure Nodes OS version is Ubuntu 22.04
+
+- meta: end_play
+  when: ansible_distribution != 'Ubuntu' or 
+        ansible_distribution_major_version != '22'
+
+# Ensure Nodes have min 2CPU cores
+
+- meta: end_play
+  when: ansible_processor_cores < 2
+
+# Ensure Nodes have min 2GB RAM
+
+- meta: end_play
+  when: ansible_memory_mb.real.total < 2048

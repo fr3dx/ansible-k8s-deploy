@@ -1,0 +1,5 @@
+---
+# tasks file for prep_os
+
+- include_tasks: set_hosts_file.yml
+- include_tasks: update_os.yml

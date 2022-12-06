@@ -1,5 +1,5 @@
 ---
-# Update host file on all hosts
+# Set host files on all hosts
 
 - name: Add the inventory into /etc/hosts
   ansible.builtin.lineinfile:

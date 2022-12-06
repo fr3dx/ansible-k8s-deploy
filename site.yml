@@ -8,4 +8,6 @@
     ansible_python_interpreter: /usr/bin/python3
 
   roles:
-  - k8s-vbox
+  - prep_os
+  - install_kubernetes_vbox
+  - install_calico_cni
